@@ -1,0 +1,8 @@
+.idea
+.venv
+.env
+__pycache__
+.DS_Store
+.vscode
+.opik.config
+ml-project-470916-3fda8d5692f3.json
