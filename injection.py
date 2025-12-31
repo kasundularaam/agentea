@@ -18,7 +18,7 @@ from src.infrastructure.adapters.vertex_config import setup_vertex_env
 
 
 class BaseContainer(containers.DeclarativeContainer):
-    # Services
+    # Adapters
     vector_adapter = providers.Dependency(VectorDBPort)
     database_adapter = providers.Dependency(DatabasePort)
     embedding_adapter = providers.Dependency(EmbeddingPort)
@@ -41,7 +41,7 @@ class DevContainer(BaseContainer):
     # Resource Setup
     vertex_setup = providers.Resource(setup_vertex_env)
 
-    # Services
+    # Adapters
     vector_adapter = providers.Singleton(MilvusVectorDBAdapter)
     database_adapter = providers.Singleton(TrinoDatabaseAdapter)
     embedding_adapter = providers.Singleton(GeminiEmbeddingAdapter)
@@ -51,7 +51,7 @@ class DevContainer(BaseContainer):
     user_repo = providers.Singleton(UserRepo)
 
     # Agents
-    helpful_agent = providers.Singleton(HelpfulAgent, instruction_service=instruction_adapter)
+    helpful_agent = providers.Singleton(HelpfulAgent, instruction_adapter=instruction_adapter)
 
     # Chains
     agents_chain = providers.Factory(ADKAgentsChain, helpful_agent=helpful_agent, user_repo=user_repo)

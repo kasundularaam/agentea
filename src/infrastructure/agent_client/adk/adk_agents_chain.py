@@ -5,7 +5,6 @@ from typing import AsyncGenerator
 from google.adk import Runner
 from google.adk.agents import BaseAgent, RunConfig
 from google.adk.agents.run_config import StreamingMode
-from google.adk.artifacts import InMemoryArtifactService
 from google.adk.events import Event
 from google.adk.sessions import InMemorySessionService, Session
 from google.genai import types
@@ -32,8 +31,7 @@ class ADKAgentsChain(AgentsChain[BaseAgent]):
 
     @staticmethod
     def __get_runner(root_agent: BaseAgent) -> Runner:
-        runner = Runner(app_name=os.getenv("APP_NAME"), agent=root_agent, session_service=InMemorySessionService(),
-                        artifact_service=InMemoryArtifactService())
+        runner = Runner(app_name=os.getenv("APP_NAME"), agent=root_agent, session_service=InMemorySessionService())
         return runner
 
     def __get_user_id(self) -> str:
