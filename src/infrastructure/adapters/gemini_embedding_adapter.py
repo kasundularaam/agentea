@@ -6,7 +6,7 @@ from google import genai
 from src.domain.ports.embedding_port import EmbeddingPort
 
 
-class GeminiEmbeddingService(EmbeddingPort):
+class GeminiEmbeddingAdapter(EmbeddingPort):
     def __init__(self) -> None:
         self.model = self._get_env("EMBEDDING_MODEL_NAME")
         self.client = self._init_client()

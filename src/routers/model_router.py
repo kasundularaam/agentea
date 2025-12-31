@@ -42,9 +42,9 @@ async def reply_stream(new_message: str, generator: ReplyMessage = Depends(Provi
                 payload = {"response": chunk}
                 yield {"data": payload}
 
-        except Exception as e:
-            logger.error(f"Stream interrupted: {e}", exc_info=True)
-            yield {"event": "error", "data": json.dumps({"error": "Stream interrupted", "detail": str(e)})}
+        except Exception as exception:
+            logger.error(f"Stream interrupted: {exception}", exc_info=True)
+            yield {"event": "error", "data": json.dumps({"error": "Stream interrupted", "detail": str(exception)})}
 
     try:
         stream = generator.stream(new_message=new_message)

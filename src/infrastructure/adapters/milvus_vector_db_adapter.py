@@ -6,7 +6,7 @@ from pymilvus import MilvusClient
 from src.domain.ports.vector_db_port import VectorDBPort
 
 
-class MilvusVectorDBService(VectorDBPort):
+class MilvusVectorDBAdapter(VectorDBPort):
     def __init__(self) -> None:
         self.client = self._init_client()
 

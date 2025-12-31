@@ -19,7 +19,7 @@ class TrinoQueryError(RuntimeError):
     pass
 
 
-class TrinoDatabaseService(DatabasePort):
+class TrinoDatabaseAdapter(DatabasePort):
     REQUIRED_ENV_VARS = {"TRINO_HOST": str, "TRINO_PORT": int, "TRINO_USER": str, "TRINO_CATALOG": str,
                          "TRINO_SCHEMA": str, "TRINO_HTTP_SCHEMA": str, }
 

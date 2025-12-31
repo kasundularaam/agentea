@@ -4,7 +4,7 @@ from src.domain.agents.core.instruction import Instruction
 from src.domain.ports.instruction_port import InstructionPort
 
 
-class OpikInstructionService(InstructionPort):
+class OpikInstructionAdapter(InstructionPort):
     @staticmethod
     def __from_opik(name: str) -> Instruction | None:
         opik_prompt = Opik().get_prompt(name)

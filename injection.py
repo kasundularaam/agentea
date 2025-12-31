@@ -10,19 +10,19 @@ from src.domain.ports.instruction_port import InstructionPort
 from src.domain.ports.vector_db_port import VectorDBPort
 from src.infrastructure.agent_client.adk.adk_agents_chain import ADKAgentsChain
 from src.infrastructure.repositories.user_repo import UserRepo
-from src.infrastructure.services.gemini_embeding_service import GeminiEmbeddingService
-from src.infrastructure.services.milvus_vector_db_service import MilvusVectorDBService
-from src.infrastructure.services.opik_instruction_service import OpikInstructionService
-from src.infrastructure.services.trino_db_service import TrinoDatabaseService
-from src.infrastructure.services.vertex_config import setup_vertex_env
+from src.infrastructure.adapters.gemini_embedding_adapter import GeminiEmbeddingAdapter
+from src.infrastructure.adapters.milvus_vector_db_adapter import MilvusVectorDBAdapter
+from src.infrastructure.adapters.opik_instruction_adapter import OpikInstructionAdapter
+from src.infrastructure.adapters.trino_db_adapter import TrinoDatabaseAdapter
+from src.infrastructure.adapters.vertex_config import setup_vertex_env
 
 
 class BaseContainer(containers.DeclarativeContainer):
     # Services
-    vector_service = providers.Dependency(VectorDBPort)
-    database_service = providers.Dependency(DatabasePort)
-    embedding_service = providers.Dependency(EmbeddingPort)
-    instruction_service = providers.Dependency(InstructionPort)
+    vector_adapter = providers.Dependency(VectorDBPort)
+    database_adapter = providers.Dependency(DatabasePort)
+    embedding_adapter = providers.Dependency(EmbeddingPort)
+    instruction_adapter = providers.Dependency(InstructionPort)
 
     # Repositories
     user_repo = providers.Dependency(UserFacade)
@@ -42,16 +42,16 @@ class DevContainer(BaseContainer):
     vertex_setup = providers.Resource(setup_vertex_env)
 
     # Services
-    vector_service = providers.Singleton(MilvusVectorDBService)
-    database_service = providers.Singleton(TrinoDatabaseService)
-    embedding_service = providers.Singleton(GeminiEmbeddingService)
-    instruction_service = providers.Singleton(OpikInstructionService)
+    vector_adapter = providers.Singleton(MilvusVectorDBAdapter)
+    database_adapter = providers.Singleton(TrinoDatabaseAdapter)
+    embedding_adapter = providers.Singleton(GeminiEmbeddingAdapter)
+    instruction_adapter = providers.Singleton(OpikInstructionAdapter)
 
     # Repositories
     user_repo = providers.Singleton(UserRepo)
 
     # Agents
-    helpful_agent = providers.Singleton(HelpfulAgent, instruction_service=instruction_service)
+    helpful_agent = providers.Singleton(HelpfulAgent, instruction_service=instruction_adapter)
 
     # Chains
     agents_chain = providers.Factory(ADKAgentsChain, helpful_agent=helpful_agent, user_repo=user_repo)
