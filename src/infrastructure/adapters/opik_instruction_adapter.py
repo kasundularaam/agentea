@@ -1,42 +1,107 @@
+import logging
+from datetime import datetime
+from typing import Optional
+
 from opik import Opik, Prompt
 
-from src.domain.agents.core.instruction import Instruction
-from src.domain.ports.instruction_port import InstructionPort
+from src.application.agents.core.instruction import Instruction
+from src.domain.ports.remote_instruction_port import RemoteInstructionPort
+from src.domain.status.service_status import ServiceStatus
+
+logger = logging.getLogger(__name__)
 
 
-class OpikInstructionAdapter(InstructionPort):
-    @staticmethod
-    def __from_opik(name: str) -> Instruction | None:
-        opik_prompt = Opik().get_prompt(name)
+class OpikInstructionAdapter(RemoteInstructionPort):
+    def __init__(self):
+        self.service_name = "OpikInstructionService"
+        self._is_enabled: bool = True
+        self._last_error: Optional[str] = None
+        self._disabled_at: Optional[datetime] = None
+        self.client = Opik()
 
-        if opik_prompt is None:
+    # --- Circuit Breaker & Health ---
+    def enable(self) -> None:
+        self._is_enabled = True
+        self._last_error = None
+        self._disabled_at = None
+        logger.info(f"{self.service_name} manually ENABLED.")
+
+    def disable(self) -> None:
+        self._is_enabled = False
+        self._disabled_at = datetime.now()
+        logger.info(f"{self.service_name} manually DISABLED.")
+
+    def health_check(self) -> ServiceStatus:
+        return ServiceStatus(
+            service_name=self.service_name,
+            is_enabled=self._is_enabled,
+            is_healthy=self._last_error is None,
+            status_message="ENABLED" if self._is_enabled else "DISABLED",
+            last_error=self._last_error,
+            disabled_at=self._disabled_at
+        )
+
+    def _trigger_circuit_breaker(self, error: Exception):
+        self._is_enabled = False
+        self._last_error = str(error)
+        self._disabled_at = datetime.now()
+        logger.error(f"⚠️ {self.service_name} failed. Auto-disabling. Error: {error}")
+
+
+    def get_instruction(self, name: str) -> Optional[Instruction]:
+        """
+        Safely attempts to fetch an instruction from Opik.
+        Returns None if disabled, not found, or if an error occurs.
+        """
+        if not self._is_enabled:
             return None
 
-        metadata = opik_prompt.metadata
+        try:
+            opik_prompt = self.client.get_prompt(name)
 
-        if metadata is None:
-            raise ValueError("Metadata not found")
+            if opik_prompt is None:
+                return None
 
-        description = opik_prompt.metadata.get("description")
-        if description is None:
-            raise ValueError("Description not found")
+            metadata = opik_prompt.metadata or {}
+            description = metadata.get("description")
+            version = metadata.get("version")
+            client = metadata.get("client")
 
-        version = opik_prompt.metadata.get("version")
+            if description is None or version is None:
+                logger.warning(f"Opik prompt '{name}' found but missing metadata (desc/ver). skipping.")
+                return None
 
-        if version is None:
-            raise ValueError("Version not found")
+            return Instruction(
+                name=opik_prompt.name,
+                instruction=opik_prompt.prompt,
+                description=description,
+                version=version,
+                client=client
+            )
 
-        return Instruction(name=opik_prompt.name, instruction=opik_prompt.prompt, description=description,
-                           version=version)
+        except Exception as e:
+            self._trigger_circuit_breaker(e)
+            return None
 
-    def __register_opik_instruction(self, instruction: Instruction) -> Instruction:
-        metadata = {"description": instruction.description, "version": instruction.version}
-        Prompt(name=instruction.name, prompt=instruction.instruction, metadata=metadata)
-        return self.__from_opik(name=instruction.name)
+    def save_instruction(self, instruction: Instruction) -> None:
+        """
+        Safely attempts to save an instruction to Opik.
+        """
+        if not self._is_enabled:
+            return
 
-    def sync(self, default: Instruction) -> Instruction:
-        opik_instruction = self.__from_opik(default.name)
-        if opik_instruction:
-            if opik_instruction.version >= default.version:
-                return opik_instruction
-        return self.__register_opik_instruction(instruction=default)
+        try:
+            metadata = {
+                "description": instruction.description,
+                "version": instruction.version,
+                "provider": instruction.provider
+            }
+            Prompt(
+                name=instruction.name,
+                prompt=instruction.instruction,
+                metadata=metadata
+            )
+            logger.info(f"Synced instruction '{instruction.name}' (v{instruction.version}) to Opik.")
+
+        except Exception as e:
+            self._trigger_circuit_breaker(e)

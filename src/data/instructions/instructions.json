@@ -1,0 +1,10 @@
+{
+  "agents": [
+    {
+      "name": "helpful_agent",
+      "description": "An agent designed to provide helpful and accurate information to users.",
+      "instructions": "src/data/instructions/markdowns/adk/helpful_agent.md",
+      "client": "ADK"
+    }
+  ]
+}

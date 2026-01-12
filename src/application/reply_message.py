@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
 
-from src.domain.agents.agents_chain import AgentsChain
+from src.application.agents.agents_chain import AgentsChain
 
 
 class ReplyMessage:

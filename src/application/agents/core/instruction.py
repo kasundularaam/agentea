@@ -1,11 +1,10 @@
-
-
 class Instruction:
-    def __init__(self, name: str, description: str, instruction: str, version: int) -> None:
+    def __init__(self, name: str, description: str, instruction: str, version: int, client: str) -> None:
         self.name: str = self.__name_by_env(name)
         self.description: str = description
         self.instruction: str = instruction
         self.version: int = version
+        self.client: str = client
 
     @staticmethod
     def __name_by_env(name: str) -> str:

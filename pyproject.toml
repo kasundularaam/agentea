@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
+    "dataclasses>=0.8",
     "dependency-injector>=4.48.3",
     "google-adk>=1.21.0",
     "opik>=1.9.67",
