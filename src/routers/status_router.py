@@ -4,8 +4,8 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
 from injection import DevContainer
-from src.domain.ports.remote_instruction_port import InstructionPort
 from src.domain.ports.observer_port import ObserverPort
+from src.domain.ports.remote_instruction_port import RemoteInstructionPort
 from src.domain.status.service_status import ServiceStatus
 
 # Initialize logger
@@ -40,19 +40,19 @@ async def observer_service_disable(service: ObserverPort = Depends(Provide[DevCo
 
 @router.get("/instructions_service", response_model=ServiceStatus)
 @inject
-async def instructions_service_status(service: InstructionPort = Depends(Provide[DevContainer.instruction_adapter])):
+async def instructions_service_status(service: RemoteInstructionPort = Depends(Provide[DevContainer.remote_instruction_adapter])):
     return service.health_check()
 
 
 @router.post("/instructions_service/enable", response_model=ServiceStatus)
 @inject
-async def instructions_service_enable(service: InstructionPort = Depends(Provide[DevContainer.instruction_adapter])):
+async def instructions_service_enable(service: RemoteInstructionPort = Depends(Provide[DevContainer.remote_instruction_adapter])):
     service.enable()
     return service.health_check()
 
 
 @router.post("/instructions_service/disable", response_model=ServiceStatus)
 @inject
-async def instructions_service_disable(service: InstructionPort = Depends(Provide[DevContainer.instruction_adapter])):
+async def instructions_service_disable(service: RemoteInstructionPort = Depends(Provide[DevContainer.remote_instruction_adapter])):
     service.disable()
     return service.health_check()

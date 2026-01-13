@@ -44,6 +44,7 @@ class OpikObserverAdapter(ObserverPort):
         logger.error(f"⚠️ {self.service_name} failed. Auto-disabling. Error: {error}")
 
     def observe_agent(self, root_agent) -> None:
+        logger.info(f"Observing agent '{root_agent.name}' to Opik.")
         if not self._is_enabled:
             logger.warning(f"Skipping Opik observation because {self.service_name} is DISABLED. "
                            f"(Reason: {self._last_error or 'Manual Action'})")

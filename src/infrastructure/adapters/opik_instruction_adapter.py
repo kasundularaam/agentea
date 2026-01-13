@@ -53,6 +53,7 @@ class OpikInstructionAdapter(RemoteInstructionPort):
         Safely attempts to fetch an instruction from Opik.
         Returns None if disabled, not found, or if an error occurs.
         """
+        logger.info(f"Fetching instruction '{name}' from Opik.")
         if not self._is_enabled:
             return None
 
@@ -87,6 +88,7 @@ class OpikInstructionAdapter(RemoteInstructionPort):
         """
         Safely attempts to save an instruction to Opik.
         """
+        logger.info(f"Saving instruction '{instruction.name}' to Opik.")
         if not self._is_enabled:
             return
 

@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime
 from typing import AsyncGenerator
@@ -15,6 +16,9 @@ from src.domain.entities.user.user_repo import UserRepo
 from src.domain.ports.observer_port import ObserverPort
 from src.infrastructure.chain.adk.core.adk_competible_agent import ADKCompatibleAgent
 
+logger = logging.getLogger(__name__)
+
+
 
 class ADKAgentsChain(AgentsChain):
 
@@ -29,20 +33,25 @@ class ADKAgentsChain(AgentsChain):
 
     @staticmethod
     def __get_runner(root_agent: BaseAgent) -> Runner:
+        logger.info(f"Getting runner from {root_agent.__class__.__name__}")
         runner = Runner(app_name=os.getenv("APP_NAME"), agent=root_agent, session_service=InMemorySessionService())
         return runner
 
     def __get_user_id(self) -> str:
+        logger.info(f"Getting user_id from {self.__class__.__name__}")
         return str(self.user_repo.user.id)
 
     @staticmethod
     def __get_session_id():
-        return f"session-{datetime.now().isoformat()}"
+        session_id = f"session-{datetime.now().isoformat()}"
+        logger.info(f"Generated session_id: {session_id}")
+        return session_id
 
     @staticmethod
     async def __create_session(runner: Runner, user_id: str, session_id: str) -> Session:
         session = await runner.session_service.create_session(app_name=os.getenv("APP_NAME"), user_id=user_id,
                                                               session_id=session_id)
+        logger.info(f"Created session: {session.id} for user: {user_id}")
         return session
 
     @staticmethod
@@ -50,7 +59,8 @@ class ADKAgentsChain(AgentsChain):
         return types.Content(role="user", parts=[types.Part(text=conversation)])
 
     async def __run_agent(self, message: str, streaming: bool = False) -> AsyncGenerator[Event, None]:
-        root_agent = self.get_root_agent()
+        logger.info(f"Running agent with message: {message} | streaming: {streaming}")
+        root_agent = self.root_agent
         runner = self.__get_runner(root_agent=root_agent)
         session_id = self.__get_session_id()
         new_message = self.__get_new_message(conversation=message)
@@ -63,6 +73,7 @@ class ADKAgentsChain(AgentsChain):
             yield event
 
     async def invoke(self, message: str) -> str:
+        logger.info(f"Invoking agent with message: {message}")
         events = self.__run_agent(message=message)
         last_event = None
         async for event in events:
@@ -77,6 +88,7 @@ class ADKAgentsChain(AgentsChain):
         return "No events were generated."
 
     async def stream(self, message: str) -> AsyncGenerator[str, None]:
+        logger.info(f"Streaming agent response for message: {message}")
         events = self.__run_agent(message=message, streaming=True)
         async for event in events:
             if event.content and event.content.parts:

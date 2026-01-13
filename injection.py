@@ -1,27 +1,33 @@
 from dependency_injector import containers, providers
 
-from src.application.reply_message import ReplyMessage
 from src.application.agents.agents_chain import AgentsChain
+from src.application.agents.core.agent import AgentContext
+from src.application.agents.core.instructions_repo import InstructionsRepo
 from src.application.agents.sub_agents.helpful_agent import HelpfulAgent
-from src.domain.ports.remote_instruction_port import InstructionPort
+from src.application.reply_message import ReplyMessage
+from src.domain.ports.local_instruction_port import LocalInstructionPort
 from src.domain.ports.model_port import ModelPort
 from src.domain.ports.observer_port import ObserverPort
+from src.domain.ports.remote_instruction_port import RemoteInstructionPort
+from src.infrastructure.adapters.file_instruction_adapter import FileInstructionAdapter
 from src.infrastructure.adapters.litellm_model_adapter import LiteLLMModelAdapter
 from src.infrastructure.adapters.opik_instruction_adapter import OpikInstructionAdapter
 from src.infrastructure.adapters.opik_observer_service import OpikObserverAdapter
 from src.infrastructure.adapters.vertex_config import setup_vertex_env
 from src.infrastructure.chain.adk.adk_agents_chain import ADKAgentsChain
-from src.infrastructure.repositories.local_user_repo_impl import UserRepo
+from src.infrastructure.repositories.local_user_repo_impl import UserRepo, LocalUserRepoImpl
 
 
 class BaseContainer(containers.DeclarativeContainer):
     # Adapters
     model_adapter = providers.Dependency(ModelPort)
-    instruction_adapter = providers.Dependency(InstructionPort)
+    local_instruction_adapter = providers.Dependency(LocalInstructionPort)
+    remote_instruction_adapter = providers.Dependency(RemoteInstructionPort)
     observer_adapter = providers.Dependency(ObserverPort)
 
     # Repositories
     user_repo = providers.Dependency(UserRepo)
+    instructions_repo = providers.Dependency(InstructionsRepo)
 
     # Agents
     helpful_agent = providers.Dependency(HelpfulAgent)
@@ -38,17 +44,23 @@ class DevContainer(BaseContainer):
     vertex_setup = providers.Resource(setup_vertex_env)
 
     # Adapters
-    model_adapter = providers.Dependency(LiteLLMModelAdapter)
-    observer_adapter = providers.Dependency(OpikObserverAdapter)
-    instruction_adapter = providers.Singleton(OpikInstructionAdapter)
+    model_adapter = providers.Singleton(LiteLLMModelAdapter)
+    observer_adapter = providers.Singleton(OpikObserverAdapter)
+    local_instruction_adapter = providers.Singleton(FileInstructionAdapter)
+    remote_instruction_adapter = providers.Singleton(OpikInstructionAdapter)
 
     # Repositories
-    user_repo = providers.Singleton(UserRepo)
+    user_repo = providers.Singleton(LocalUserRepoImpl)
+    instructions_repo = providers.Singleton(InstructionsRepo, local_instruction_adapter=local_instruction_adapter,
+                                            remote_instruction_adapter=remote_instruction_adapter)
+
+    agent_ctx = providers.Singleton(AgentContext, instructions_repo=instructions_repo)
 
     # Agents
-    helpful_agent = providers.Singleton(HelpfulAgent, instruction_adapter=instruction_adapter)
+    helpful_agent = providers.Singleton(HelpfulAgent, ctx=agent_ctx)
 
     # Chains
-    agents_chain = providers.Factory(ADKAgentsChain, helpful_agent=helpful_agent, user_repo=user_repo)
+    agents_chain = providers.Factory(ADKAgentsChain, helpful_agent=helpful_agent, user_repo=user_repo,
+                                     observer_adapter=observer_adapter)
 
     reply_usecase = providers.Factory(ReplyMessage, chain=agents_chain)

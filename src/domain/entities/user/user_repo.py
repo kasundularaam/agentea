@@ -4,7 +4,8 @@ from src.domain.entities.user.user import User
 
 
 class UserRepo(ABC):
-    @abstractmethod
+
     @property
+    @abstractmethod
     def user(self) -> User:
         pass

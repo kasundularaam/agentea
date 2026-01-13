@@ -7,7 +7,7 @@ from src.application.agents.core.instructions_repo import InstructionsRepo
 
 @dataclass(frozen=True)
 class AgentContext:
-    instruction_service: InstructionsRepo
+    instructions_repo: InstructionsRepo
 
 
 class Agent(ABC):
@@ -27,4 +27,4 @@ class Agent(ABC):
 
     @property
     def instruction(self) -> Instruction:
-        return self.ctx.instruction_service.get(name=self.name)
+        return self.ctx.instructions_repo.get(name=self.name)

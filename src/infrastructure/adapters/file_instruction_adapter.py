@@ -1,16 +1,21 @@
 import json
+import logging
 from pathlib import Path
 
 from src.application.agents.core.instruction import Instruction
 from src.domain.ports.local_instruction_port import LocalInstructionPort
 
+logger = logging.getLogger(__name__)
 
-class LocalInstructionAdapter(LocalInstructionPort):
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+class FileInstructionAdapter(LocalInstructionPort):
 
     def __init__(self, registry_path: str = "data/instructions/instructions.json"):
-        self.registry_path = Path(registry_path)
+        self.registry_path = BASE_DIR / registry_path
 
     def get(self, name: str, client: str) -> Instruction:
+        logger.info(f"Getting instruction for agent '{name}' for client '{client}'")
         if not self.registry_path.exists():
             raise FileNotFoundError(f"Registry file not found at: {self.registry_path}")
 
