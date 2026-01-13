@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.agents.core.instruction import Instruction
+from src.domain.entities.instruction.instruction import Instruction
 from src.domain.status.service_status import ServiceStatus
 
 

@@ -1,8 +1,8 @@
 from abc import ABC
 from dataclasses import dataclass
 
-from src.application.agents.core.instruction import Instruction
-from src.application.agents.core.instructions_repo import InstructionsRepo
+from src.domain.entities.instruction.instruction import Instruction
+from src.domain.entities.instruction.instructions_repo import InstructionsRepo
 
 
 @dataclass(frozen=True)

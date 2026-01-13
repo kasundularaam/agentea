@@ -2,7 +2,7 @@ from dependency_injector import containers, providers
 
 from src.application.agents.agents_chain import AgentsChain
 from src.application.agents.core.agent import AgentContext
-from src.application.agents.core.instructions_repo import InstructionsRepo
+from src.domain.entities.instruction.instructions_repo import InstructionsRepo
 from src.application.agents.sub_agents.helpful_agent import HelpfulAgent
 from src.application.reply_message import ReplyMessage
 from src.domain.ports.local_instruction_port import LocalInstructionPort
@@ -15,6 +15,7 @@ from src.infrastructure.adapters.opik_instruction_adapter import OpikInstruction
 from src.infrastructure.adapters.opik_observer_service import OpikObserverAdapter
 from src.infrastructure.adapters.vertex_config import setup_vertex_env
 from src.infrastructure.chain.adk.adk_agents_chain import ADKAgentsChain
+from src.infrastructure.repositories.instructions_repo_impl import InstructionsRepoImpl
 from src.infrastructure.repositories.local_user_repo_impl import UserRepo, LocalUserRepoImpl
 
 
@@ -51,7 +52,7 @@ class DevContainer(BaseContainer):
 
     # Repositories
     user_repo = providers.Singleton(LocalUserRepoImpl)
-    instructions_repo = providers.Singleton(InstructionsRepo, local_instruction_adapter=local_instruction_adapter,
+    instructions_repo = providers.Singleton(InstructionsRepoImpl, local_instruction_adapter=local_instruction_adapter,
                                             remote_instruction_adapter=remote_instruction_adapter)
 
     agent_ctx = providers.Singleton(AgentContext, instructions_repo=instructions_repo)

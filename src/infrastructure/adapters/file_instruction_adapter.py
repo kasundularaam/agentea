@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 
-from src.application.agents.core.instruction import Instruction
+from src.domain.entities.instruction.instruction import Instruction
 from src.domain.ports.local_instruction_port import LocalInstructionPort
 
 logger = logging.getLogger(__name__)

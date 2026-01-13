@@ -4,7 +4,7 @@ from typing import Optional
 
 from opik import Opik, Prompt
 
-from src.application.agents.core.instruction import Instruction
+from src.domain.entities.instruction.instruction import Instruction
 from src.domain.ports.remote_instruction_port import RemoteInstructionPort
 from src.domain.status.service_status import ServiceStatus
 

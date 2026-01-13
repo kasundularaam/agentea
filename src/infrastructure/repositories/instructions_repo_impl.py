@@ -1,21 +1,14 @@
 import logging
 import os
 
-from src.application.agents.core.instruction import Instruction
-from src.domain.ports.local_instruction_port import LocalInstructionPort
-from src.domain.ports.remote_instruction_port import RemoteInstructionPort
+from src.domain.entities.instruction.instruction import Instruction
+from src.domain.entities.instruction.instructions_repo import InstructionsRepo
 
 logger = logging.getLogger(__name__)
 
 
-class InstructionsRepo:
-    def __init__(self, remote_instruction_adapter: RemoteInstructionPort,
-                 local_instruction_adapter: LocalInstructionPort):
-        self.remote = remote_instruction_adapter
-        self.local = local_instruction_adapter
-
+class InstructionsRepoImpl(InstructionsRepo):
     def get(self, name: str) -> Instruction:
-
         local_instr = self.local.get(name=name, client=os.getenv("AGENT_CLIENT"))
 
         remote_instr = self.remote.get_instruction(name=local_instr.name)
